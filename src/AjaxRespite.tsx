@@ -14,7 +14,7 @@ type SimpleSuspenseProps<T> = {
   optimisticMode?: boolean;
 };
 
-export function SimpleSuspense<T>({
+export function AjaxRespite<T>({
   fallback,
   children,
   maxDuration = 0,

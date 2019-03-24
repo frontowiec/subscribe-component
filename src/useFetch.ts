@@ -1,4 +1,4 @@
-import { EMPTY, Observable } from "rxjs";
+import { EMPTY, Observable, pipe } from "rxjs";
 import { useEffect, useRef, useState } from "react";
 import { catchError, tap } from "rxjs/operators";
 import { createOptimisticResource } from "./createOptimisticResource";
@@ -20,20 +20,20 @@ export const useFetch = <T>(
   const [data, setData] = useState<T>();
   const savedDeps = useRef(deps);
 
+  const commonOperator = pipe(
+    tap((response: T) => setData(response)),
+    tap(() => setStatus(FetchStatus.Success)),
+    catchError((err: AjaxError) => {
+      setError(err);
+      setStatus(FetchStatus.Failed);
+      return EMPTY;
+    })
+  );
+
   useEffect(() => {
     if (!optimisticMode || deps !== savedDeps.current) {
       setStatus(FetchStatus.In_progress);
-      const subscription$ = stream$
-        .pipe(
-          tap((response: T) => setData(response)),
-          tap(() => setStatus(FetchStatus.Success)),
-          catchError((err: AjaxError) => {
-            setError(err);
-            setStatus(FetchStatus.Failed);
-            return EMPTY;
-          })
-        )
-        .subscribe();
+      const subscription$ = stream$.pipe(commonOperator).subscribe();
 
       savedDeps.current = deps;
 
@@ -41,15 +41,7 @@ export const useFetch = <T>(
     }
 
     const subscription$ = createOptimisticResource(stream$)
-      .pipe(
-        tap((response: T) => setData(response)),
-        tap(() => setStatus(FetchStatus.Success)),
-        catchError((err: AjaxError) => {
-          setError(err);
-          setStatus(FetchStatus.Failed);
-          return EMPTY;
-        })
-      )
+      .pipe(commonOperator)
       .subscribe();
 
     return () => subscription$.unsubscribe();

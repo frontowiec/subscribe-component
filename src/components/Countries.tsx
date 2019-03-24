@@ -3,7 +3,7 @@ import { FunctionComponent, Fragment, useState } from "react";
 import { getAllCountries$ } from "../api/restcountries";
 import { RouteComponentProps } from "@reach/router";
 import { FetchStatus } from "../useFetch";
-import { SimpleSuspense } from "../SimpleSuspense";
+import { AjaxRespite } from "../AjaxRespite";
 import { useDebounce } from "use-debounce";
 
 enum CountriesFetchState {
@@ -26,11 +26,12 @@ export const Countries: FunctionComponent<RouteComponentProps> = () => {
         placeholder="Type country name..."
       />
       <br />
-      <SimpleSuspense
+      <AjaxRespite
         source={getAllCountries$({ filter })}
         fallback={<strong>Loading...</strong>}
         maxDuration={0}
         params={[filterValue]}
+        optimisticMode={true}
       >
         {({ status, data, error }) => {
           // todo: try to use useReducer for simplicity
@@ -54,7 +55,7 @@ export const Countries: FunctionComponent<RouteComponentProps> = () => {
             </ul>
           );
         }}
-      </SimpleSuspense>
+      </AjaxRespite>
     </Fragment>
   );
 };
