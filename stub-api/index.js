@@ -8043,16 +8043,29 @@ const data = [
 
 const cors = require("cors");
 const bodyParser = require("body-parser");
-const delay = require('express-delay');
+const delay = require("express-delay");
 
 app.use(cors());
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 app.use(delay(500));
 
+app.get("/api/conuntries", (req, res) => {
+  const { query } = req;
 
-app.get("/api/conuntries", (req, res) => res.status(200).send(JSON.stringify(data)));
+  if (query && query.filter) {
+    res
+      .status(200)
+      .send(
+        data.filter(d =>
+          d.name.toLocaleLowerCase().includes(query.filter.toLocaleLowerCase())
+        )
+      );
+    return;
+  }
 
+  res.status(200).send(data);
+});
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT);

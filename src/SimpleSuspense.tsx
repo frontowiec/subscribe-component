@@ -9,22 +9,31 @@ type SimpleSuspenseProps<T> = {
   ) => JSX.Element;
   fallback: JSX.Element;
   stream: Observable<T>;
+  params?: Array<unknown>;
 };
 
 export function SimpleSuspense<T>({
   fallback,
   children,
   maxDuration = 0,
-  stream
+  stream,
+  params = []
 }: SimpleSuspenseProps<T>) {
   const [showFallback, setShowFallback] = useState(false);
-  const { status, errorStatus, data } = useFetch<T>(stream, []);
+  const { status, errorStatus, data } = useFetch<T>(stream, params);
 
-  useEffect(() => {
-    setTimeout(() => {
-      setShowFallback(true);
-    }, maxDuration);
-  }, []);
+  console.log(status);
+
+  useEffect(
+    () => {
+      const timeout = setTimeout(() => {
+        setShowFallback(true);
+      }, maxDuration);
+
+      return () => clearTimeout(timeout);
+    },
+    [params]
+  );
 
   if (status === StateStatus.Success) {
     // StateStatus.Success should ensure value for data

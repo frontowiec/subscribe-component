@@ -4,10 +4,8 @@ import { catchError, startWith, tap } from "rxjs/operators";
 
 export enum StateStatus {
   Default = "default",
-  In_progress = "in_progress",
   Success = "success",
-  Failed = "failed",
-  Cached = "cached"
+  Failed = "failed"
 }
 
 let response: any;
@@ -28,7 +26,9 @@ export const useFetch = <T>(stream$: Observable<T>, deps: Array<unknown>) => {
   );
 
   useEffect(() => {
-    setStatus(StateStatus.In_progress);
+    // todo if deps change between renders then subscribe without startWith and change status to Default
+
+    console.log(deps);
 
     if (!response) {
       const subscription = stream$

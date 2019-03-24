@@ -4,13 +4,18 @@ import { getAllCountries$ } from "../api/restcountries";
 import { RouteComponentProps } from "@reach/router";
 import { StateStatus } from "../useFetch";
 import { SimpleSuspense } from "../SimpleSuspense";
+import { useDebounce } from "use-debounce";
 
 export const Countries: FunctionComponent<RouteComponentProps> = () => {
   const [filter, setFilter] = useState("");
+  const [filterValue] = useDebounce(filter, 400);
+
   return (
     <SimpleSuspense
-      stream={getAllCountries$()}
+      stream={getAllCountries$({ filter })}
       fallback={<strong>Loading...</strong>}
+      maxDuration={0}
+      params={[filterValue]}
     >
       {({ status, data }) => {
         if (status === StateStatus.Failed) {
