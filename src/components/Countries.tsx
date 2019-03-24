@@ -2,16 +2,8 @@ import * as React from "react";
 import { FunctionComponent, Fragment, useState } from "react";
 import { getAllCountries$ } from "../api/restcountries";
 import { RouteComponentProps } from "@reach/router";
-import { FetchStatus } from "../useFetch";
 import { AjaxRespite } from "../AjaxRespite";
 import { useDebounce } from "use-debounce";
-
-enum CountriesFetchState {
-  Initial,
-  In_progress,
-  Success,
-  Failed
-}
 
 export const Countries: FunctionComponent<RouteComponentProps> = () => {
   const [filter, setFilter] = useState("");
@@ -28,25 +20,20 @@ export const Countries: FunctionComponent<RouteComponentProps> = () => {
       <br />
       <AjaxRespite
         source={getAllCountries$({ filter })}
-        fallback={<strong>Loading...</strong>}
+        fallback={
+          filterValue !== "" ? (
+            <strong>Searching...</strong>
+          ) : (
+            <strong>Loading...</strong>
+          )
+        }
         maxDuration={0}
         params={[filterValue]}
         optimisticMode={true}
-      >
-        {({ status, data, error }) => {
-          // todo: try to use useReducer for simplicity
-          if (status === FetchStatus.Failed && error.status === 404) {
-            return <strong>Country list is empty</strong>;
-          }
-
-          if (status === FetchStatus.Failed) {
-            return <strong>PAGE ERROR! Status: {error.status}</strong>;
-          }
-
+        onSuccess={data => {
           if (filter !== "" && data.length === 0) {
             return <strong>No results for {filter}</strong>;
           }
-
           return (
             <ul>
               {data.map(country => (
@@ -55,7 +42,13 @@ export const Countries: FunctionComponent<RouteComponentProps> = () => {
             </ul>
           );
         }}
-      </AjaxRespite>
+        onFailed={error => {
+          if (error.status === 404) {
+            return <strong>Country list is empty</strong>;
+          }
+          return <strong>PAGE ERROR! Status: {error.status}</strong>;
+        }}
+      />
     </Fragment>
   );
 };
