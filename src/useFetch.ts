@@ -1,6 +1,8 @@
-import { EMPTY, Observable, pipe } from "rxjs";
-import { useEffect, useState } from "react";
-import { catchError, startWith, tap } from "rxjs/operators";
+import { EMPTY, Observable } from "rxjs";
+import { useEffect, useRef, useState } from "react";
+import { catchError, tap } from "rxjs/operators";
+import { createOptimisticResource } from "./createOptimisticResource";
+import { AjaxError } from "rxjs/ajax";
 
 export enum StateStatus {
   Default = "default",
@@ -8,47 +10,50 @@ export enum StateStatus {
   Failed = "failed"
 }
 
-let response: any;
-
-export const useFetch = <T>(stream$: Observable<T>, deps: Array<unknown>) => {
+export const useFetch = <T>(
+  stream$: Observable<T>,
+  deps: Array<unknown>,
+  optimisticMode: boolean
+) => {
   const [status, setStatus] = useState<StateStatus>(StateStatus.Default);
-  const [errorStatus, setErrorStatus] = useState();
+  const [error, setError] = useState<AjaxError>();
   const [data, setData] = useState<T>();
-
-  const fetchOperator = pipe(
-    tap((response: T) => setData(response)),
-    tap(() => setStatus(StateStatus.Success)),
-    catchError(err => {
-      setStatus(StateStatus.Failed);
-      setErrorStatus(err.status);
-      return EMPTY;
-    })
-  );
+  const savedDeps = useRef(deps);
 
   useEffect(() => {
-    // todo if deps change between renders then subscribe without startWith and change status to Default
-
-    console.log(deps);
-
-    if (!response) {
-      const subscription = stream$
+    if (!optimisticMode || deps !== savedDeps.current) {
+      setStatus(StateStatus.Default);
+      const subscription$ = stream$
         .pipe(
-          tap(r => (response = r)),
-          fetchOperator
+          tap((response: T) => setData(response)),
+          tap(() => setStatus(StateStatus.Success)),
+          catchError((err: AjaxError) => {
+            setError(err);
+            setStatus(StateStatus.Failed);
+            return EMPTY;
+          })
         )
         .subscribe();
-      return () => subscription.unsubscribe();
+
+      savedDeps.current = deps;
+
+      return () => subscription$.unsubscribe();
     }
 
-    const subscription = stream$
+    const subscription$ = createOptimisticResource(stream$)
       .pipe(
-        startWith(response),
-        tap(r => (response = r)),
-        fetchOperator
+        tap((response: T) => setData(response)),
+        tap(() => setStatus(StateStatus.Success)),
+        catchError((err: AjaxError) => {
+          setError(err);
+          setStatus(StateStatus.Failed);
+          return EMPTY;
+        })
       )
       .subscribe();
-    return () => subscription.unsubscribe();
+
+    return () => subscription$.unsubscribe();
   }, deps);
 
-  return { status, errorStatus, data };
+  return { status, error, data };
 };

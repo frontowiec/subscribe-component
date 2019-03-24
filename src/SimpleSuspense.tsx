@@ -1,28 +1,29 @@
 import { useEffect, useState } from "react";
 import { StateStatus, useFetch } from "./useFetch";
 import { Observable } from "rxjs";
+import { AjaxError } from "rxjs/ajax";
 
 type SimpleSuspenseProps<T> = {
   maxDuration?: number;
   children: (
-    options: { status: StateStatus; errorStatus: string; data: T }
+    options: { status: StateStatus; error: AjaxError; data: T }
   ) => JSX.Element;
   fallback: JSX.Element;
-  stream: Observable<T>;
+  source: Observable<T>;
   params?: Array<unknown>;
+  optimisticMode?: boolean;
 };
 
 export function SimpleSuspense<T>({
   fallback,
   children,
   maxDuration = 0,
-  stream,
-  params = []
+  source,
+  params = [],
+  optimisticMode = true
 }: SimpleSuspenseProps<T>) {
   const [showFallback, setShowFallback] = useState(false);
-  const { status, errorStatus, data } = useFetch<T>(stream, params);
-
-  console.log(status);
+  const { status, error, data } = useFetch<T>(source, params, optimisticMode);
 
   useEffect(
     () => {
@@ -35,11 +36,11 @@ export function SimpleSuspense<T>({
     [params]
   );
 
-  if (status === StateStatus.Success) {
+  if (status === StateStatus.Success || status === StateStatus.Failed) {
     // StateStatus.Success should ensure value for data
-    return children({ status, errorStatus, data } as {
+    return children({ status, error, data } as {
       status: StateStatus;
-      errorStatus: string;
+      error: AjaxError;
       data: T;
     });
   }

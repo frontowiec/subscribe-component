@@ -8053,6 +8053,9 @@ app.use(delay(500));
 app.get("/api/conuntries", (req, res) => {
   const { query } = req;
 
+  // res.status(400).send({ messages: ["too.much"] });
+  // return;
+
   if (query && query.filter) {
     res
       .status(200)

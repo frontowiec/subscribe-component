@@ -12,14 +12,14 @@ export const Countries: FunctionComponent<RouteComponentProps> = () => {
 
   return (
     <SimpleSuspense
-      stream={getAllCountries$({ filter })}
+      source={getAllCountries$({ filter })}
       fallback={<strong>Loading...</strong>}
       maxDuration={0}
       params={[filterValue]}
     >
-      {({ status, data }) => {
+      {({ status, data, error }) => {
         if (status === StateStatus.Failed) {
-          return <strong>ERROR!</strong>;
+          return <strong>ERROR! {error.status}</strong>;
         }
 
         return (
