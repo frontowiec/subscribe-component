@@ -12,10 +12,7 @@ export enum StateStatus {
 
 let response: any;
 
-export const useFetch = <T extends object>(
-  stream$: Observable<T>,
-  deps: Array<unknown>
-) => {
+export const useFetch = <T>(stream$: Observable<T>, deps: Array<unknown>) => {
   const [status, setStatus] = useState<StateStatus>(StateStatus.Default);
   const [errorStatus, setErrorStatus] = useState();
   const [data, setData] = useState<T>();
