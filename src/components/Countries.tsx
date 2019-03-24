@@ -11,33 +11,42 @@ export const Countries: FunctionComponent<RouteComponentProps> = () => {
   const [filterValue] = useDebounce(filter, 400);
 
   return (
-    <SimpleSuspense
-      source={getAllCountries$({ filter })}
-      fallback={<strong>Loading...</strong>}
-      maxDuration={0}
-      params={[filterValue]}
-    >
-      {({ status, data, error }) => {
-        if (status === StateStatus.Failed) {
-          return <strong>ERROR! {error.status}</strong>;
-        }
+    <Fragment>
+      <input
+        type="text"
+        value={filter}
+        onChange={e => setFilter(e.target.value)}
+        placeholder="Type country name..."
+      />
+      <br />
+      <SimpleSuspense
+        source={getAllCountries$({ filter })}
+        fallback={<strong>Loading...</strong>}
+        maxDuration={0}
+        params={[filterValue]}
+      >
+        {({ status, data, error }) => {
+          if (status === StateStatus.Failed && error.status === 404) {
+            return <strong>Country list is empty</strong>;
+          }
 
-        return (
-          <Fragment>
-            <input
-              type="text"
-              value={filter}
-              onChange={e => setFilter(e.target.value)}
-              placeholder="Type country name..."
-            />
+          if (status === StateStatus.Failed) {
+            return <strong>PAGE ERROR! Status: {error.status}</strong>;
+          }
+
+          if (filter !== "" && data.length === 0) {
+            return <strong>No results for {filter}</strong>;
+          }
+
+          return (
             <ul>
               {data.map(country => (
                 <li key={country.name}>{country.name}</li>
               ))}
             </ul>
-          </Fragment>
-        );
-      }}
-    </SimpleSuspense>
+          );
+        }}
+      </SimpleSuspense>
+    </Fragment>
   );
 };

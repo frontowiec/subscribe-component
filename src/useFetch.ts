@@ -5,7 +5,7 @@ import { createOptimisticResource } from "./createOptimisticResource";
 import { AjaxError } from "rxjs/ajax";
 
 export enum StateStatus {
-  Default = "default",
+  In_progress = "in_progress",
   Success = "success",
   Failed = "failed"
 }
@@ -15,14 +15,14 @@ export const useFetch = <T>(
   deps: Array<unknown>,
   optimisticMode: boolean
 ) => {
-  const [status, setStatus] = useState<StateStatus>(StateStatus.Default);
+  const [status, setStatus] = useState<StateStatus>(StateStatus.In_progress);
   const [error, setError] = useState<AjaxError>();
   const [data, setData] = useState<T>();
   const savedDeps = useRef(deps);
 
   useEffect(() => {
     if (!optimisticMode || deps !== savedDeps.current) {
-      setStatus(StateStatus.Default);
+      setStatus(StateStatus.In_progress);
       const subscription$ = stream$
         .pipe(
           tap((response: T) => setData(response)),
