@@ -12,6 +12,8 @@ type SimpleSuspenseProps<T> = {
   onFailed: (error: AjaxError) => JSX.Element;
 };
 
+let repeatLastRequest: () => void;
+
 function AjaxRespite<T>({
   fallback,
   maxDuration = 0,
@@ -21,11 +23,9 @@ function AjaxRespite<T>({
   onFailed
 }: SimpleSuspenseProps<T>) {
   const [showFallback, setShowFallback] = useState(false);
-  const { status, error, data } = useFetch<T>(source, params);
+  const { status, error, data, doFetch } = useFetch<T>(source, params);
 
-  AjaxRespite.prototype.repeatLastRequest = () => {
-    // todo: doFetch()
-  };
+  repeatLastRequest = doFetch;
 
   useEffect(
     () => {
@@ -56,5 +56,5 @@ function AjaxRespite<T>({
   return null;
 }
 
-export { AjaxRespite };
+export { AjaxRespite, repeatLastRequest };
 export default AjaxRespite;

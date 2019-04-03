@@ -2,7 +2,7 @@ import * as React from "react";
 import { FunctionComponent, Fragment, useState } from "react";
 import { getAllCountries, getAllCountries$ } from "../api/restcountries";
 import { RouteComponentProps } from "@reach/router";
-import AjaxRespite from "../AjaxRespite";
+import AjaxRespite, { repeatLastRequest } from "../AjaxRespite";
 import { useDebounce } from "use-debounce";
 import { createOptimisticResource } from "../createOptimisticResource";
 
@@ -10,9 +10,8 @@ const optimisticRequest$ = (filter: string) =>
   createOptimisticResource(getAllCountries$({ filter }));
 
 const optimisticRequest = (filter: string) =>
-  createOptimisticResource(
-    getAllCountries({ filter }),
-    () => "AD2BB613E00FC4569062E3B349181421"
+  createOptimisticResource(getAllCountries({ filter }), () =>
+    JSON.stringify(filter)
   );
 
 export const Countries: FunctionComponent<RouteComponentProps> = () => {
@@ -21,9 +20,7 @@ export const Countries: FunctionComponent<RouteComponentProps> = () => {
 
   return (
     <Fragment>
-      <button onClick={() => AjaxRespite.prototype.repeatLastRequest()}>
-        Refresh
-      </button>
+      <button onClick={() => repeatLastRequest()}>Refresh</button>
       <br />
       <input
         type="text"
