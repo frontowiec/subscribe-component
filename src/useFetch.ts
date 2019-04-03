@@ -9,7 +9,10 @@ export enum FetchStatus {
   Failed = "failed"
 }
 
-export const useFetch = <T>(stream$: Observable<T>, deps: Array<unknown>) => {
+export const useFetch = <T>(
+  source: Observable<T> | Promise<T>,
+  deps: Array<unknown>
+) => {
   const [data, setData] = useState<T>();
   const [error, setError] = useState<AjaxError>();
   const [status, setStatus] = useState<FetchStatus>(FetchStatus.In_progress);
@@ -19,8 +22,18 @@ export const useFetch = <T>(stream$: Observable<T>, deps: Array<unknown>) => {
   }, deps);
 
   useEffect(() => {
-    console.log(deps);
-    const subscription$ = stream$
+    if (source instanceof Promise) {
+      source
+        .then((response: T) => setData(response))
+        .then(() => setStatus(FetchStatus.Success))
+        .catch(err => {
+          setError(err);
+          setStatus(FetchStatus.Failed);
+        });
+      return;
+    }
+
+    const subscription$ = source
       .pipe(
         tap((response: T) => setData(response)),
         tap(() => setStatus(FetchStatus.Success)),

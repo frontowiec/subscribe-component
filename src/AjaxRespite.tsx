@@ -6,7 +6,7 @@ import { AjaxError } from "rxjs/ajax";
 type SimpleSuspenseProps<T> = {
   maxDuration?: number;
   fallback: JSX.Element;
-  source: Observable<T>;
+  source: Observable<T> | Promise<T>;
   params?: Array<unknown>;
   onSuccess: (data: T) => JSX.Element;
   onFailed: (error: AjaxError) => JSX.Element;

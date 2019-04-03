@@ -1,25 +1,48 @@
 import { Observable, throwError } from "rxjs";
 import { catchError, startWith, tap } from "rxjs/operators";
+import { instanceOf } from "prop-types";
 
 // https://github.com/lodash/lodash/blob/master/memoize.js
 
 const cache = new Map();
 
 export function createOptimisticResource<T>(
-  stream$: Observable<T>
-): Observable<T> {
-  const key = JSON.stringify(stream$);
+  source: Observable<T> | Promise<T>,
+  hashFunction?: () => string
+): Observable<T> | Promise<T> {
+  if (source instanceof Promise) {
+    if (!hashFunction) {
+      throw new Error("If you use Promise you must provide hash function");
+    }
+
+    console.warn("Optimistic rendering not supported yet for Promise");
+
+    return source;
+
+    /*const key = hashFunction();
+    const cachedValue = cache.get(key);
+    if (!cachedValue) {
+      return source.then(data => {
+        cache.set(key, data);
+        return data;
+      });
+    }
+
+    return new Promise(resolve => resolve(cachedValue));*/
+  }
+
+  const key = JSON.stringify(source);
   const cachedValue = cache.get(key);
 
   if (!cachedValue) {
-    return stream$.pipe(
+    return source.pipe(
       tap(data => {
         cache.set(key, data);
       })
     );
   }
 
-  return stream$.pipe(
+  return source.pipe(
     startWith(cachedValue),
     tap(data => {
       cache.set(key, data);

@@ -18,3 +18,14 @@ export const getAllCountries$ = (params: object) => {
     }
   );
 };
+
+export const getAllCountries = (params: object) => {
+  return ajax
+    .getJSON<IAllCountriesResponse[]>(
+      `http://localhost:5000/api/conuntries?${stringify(params)}`,
+      {
+        "X-RapidAPI-Key": "d32bcf4994msh24f571cc203f7f7p1be16bjsnced8eb1bd370"
+      }
+    )
+    .toPromise();
+};

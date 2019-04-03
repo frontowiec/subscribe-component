@@ -1,13 +1,19 @@
 import * as React from "react";
 import { FunctionComponent, Fragment, useState } from "react";
-import { getAllCountries$ } from "../api/restcountries";
+import { getAllCountries, getAllCountries$ } from "../api/restcountries";
 import { RouteComponentProps } from "@reach/router";
 import AjaxRespite from "../AjaxRespite";
 import { useDebounce } from "use-debounce";
 import { createOptimisticResource } from "../createOptimisticResource";
 
-const optimisticRequest = (filter: string) =>
+const optimisticRequest$ = (filter: string) =>
   createOptimisticResource(getAllCountries$({ filter }));
+
+const optimisticRequest = (filter: string) =>
+  createOptimisticResource(
+    getAllCountries({ filter }),
+    () => "AD2BB613E00FC4569062E3B349181421"
+  );
 
 export const Countries: FunctionComponent<RouteComponentProps> = () => {
   const [filter, setFilter] = useState("");
@@ -27,8 +33,10 @@ export const Countries: FunctionComponent<RouteComponentProps> = () => {
       />
       <br />
       <AjaxRespite
-        source={optimisticRequest(filterValue)}
+        source={optimisticRequest$(filterValue)}
+        // source={optimisticRequest(filterValue)}
         // source={getAllCountries$({filter: filterValue})}
+        // source={getAllCountries({ filter: filterValue })}
         fallback={
           filter !== "" ? (
             <strong>Searching...</strong>
