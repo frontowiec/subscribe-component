@@ -8,22 +8,24 @@ type SimpleSuspenseProps<T> = {
   fallback: JSX.Element;
   source: Observable<T>;
   params?: Array<unknown>;
-  optimisticMode?: boolean;
   onSuccess: (data: T) => JSX.Element;
   onFailed: (error: AjaxError) => JSX.Element;
 };
 
-export function AjaxRespite<T>({
+function AjaxRespite<T>({
   fallback,
   maxDuration = 0,
   source,
   params = [],
-  optimisticMode = true,
   onSuccess,
   onFailed
 }: SimpleSuspenseProps<T>) {
   const [showFallback, setShowFallback] = useState(false);
-  const { status, error, data } = useFetch<T>(source, params, optimisticMode);
+  const { status, error, data } = useFetch<T>(source, params);
+
+  AjaxRespite.prototype.repeatLastRequest = () => {
+    // todo: doFetch()
+  };
 
   useEffect(
     () => {
@@ -31,9 +33,12 @@ export function AjaxRespite<T>({
         setShowFallback(true);
       }, maxDuration);
 
-      return () => clearTimeout(timeout);
+      return () => {
+        setShowFallback(false);
+        clearTimeout(timeout);
+      };
     },
-    [params]
+    [maxDuration]
   );
 
   if (status === FetchStatus.Success) {
@@ -50,3 +55,6 @@ export function AjaxRespite<T>({
 
   return null;
 }
+
+export { AjaxRespite };
+export default AjaxRespite;

@@ -3,7 +3,7 @@ const app = express();
 
 const data = [
   {
-    name: "Afghanistan",
+    name: "Afghanaistan",
     topLevelDomain: [".af"],
     alpha2Code: "AF",
     alpha3Code: "AFG",

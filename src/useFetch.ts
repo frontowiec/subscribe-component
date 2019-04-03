@@ -1,7 +1,6 @@
-import { EMPTY, Observable, pipe } from "rxjs";
-import { useEffect, useRef, useState } from "react";
+import { EMPTY, Observable } from "rxjs";
+import { useEffect, useState } from "react";
 import { catchError, tap } from "rxjs/operators";
-import { createOptimisticResource } from "./createOptimisticResource";
 import { AjaxError } from "rxjs/ajax";
 
 export enum FetchStatus {
@@ -10,40 +9,28 @@ export enum FetchStatus {
   Failed = "failed"
 }
 
-export const useFetch = <T>(
-  stream$: Observable<T>,
-  deps: Array<unknown>,
-  optimisticMode: boolean
-) => {
-  const [status, setStatus] = useState<FetchStatus>(FetchStatus.In_progress);
-  const [error, setError] = useState<AjaxError>();
+export const useFetch = <T>(stream$: Observable<T>, deps: Array<unknown>) => {
   const [data, setData] = useState<T>();
-  const savedDeps = useRef(deps);
-
-  const commonOperator = pipe(
-    tap((response: T) => setData(response)),
-    tap(() => setStatus(FetchStatus.Success)),
-    catchError((err: AjaxError) => {
-      setError(err);
-      setStatus(FetchStatus.Failed);
-      return EMPTY;
-    })
-  );
+  const [error, setError] = useState<AjaxError>();
+  const [status, setStatus] = useState<FetchStatus>(FetchStatus.In_progress);
 
   useEffect(() => {
-    if (!optimisticMode || deps !== savedDeps.current) {
-      setStatus(FetchStatus.In_progress);
-      const subscription$ = stream$.pipe(commonOperator).subscribe();
+    setStatus(FetchStatus.In_progress);
+  }, deps);
 
-      savedDeps.current = deps;
-
-      return () => subscription$.unsubscribe();
-    }
-
-    const subscription$ = createOptimisticResource(stream$)
-      .pipe(commonOperator)
-      .subscribe();
-
+  useEffect(() => {
+    console.log(deps);
+    const subscription$ = stream$
+      .pipe(
+        tap((response: T) => setData(response)),
+        tap(() => setStatus(FetchStatus.Success)),
+        catchError((err: AjaxError) => {
+          setError(err);
+          setStatus(FetchStatus.Failed);
+          return EMPTY;
+        })
+      )
+      .subscribe(console.log);
     return () => subscription$.unsubscribe();
   }, deps);
 

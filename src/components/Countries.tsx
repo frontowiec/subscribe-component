@@ -2,8 +2,12 @@ import * as React from "react";
 import { FunctionComponent, Fragment, useState } from "react";
 import { getAllCountries$ } from "../api/restcountries";
 import { RouteComponentProps } from "@reach/router";
-import { AjaxRespite } from "../AjaxRespite";
+import AjaxRespite from "../AjaxRespite";
 import { useDebounce } from "use-debounce";
+import { createOptimisticResource } from "../createOptimisticResource";
+
+const optimisticRequest = (filter: string) =>
+  createOptimisticResource(getAllCountries$({ filter }));
 
 export const Countries: FunctionComponent<RouteComponentProps> = () => {
   const [filter, setFilter] = useState("");
@@ -11,6 +15,10 @@ export const Countries: FunctionComponent<RouteComponentProps> = () => {
 
   return (
     <Fragment>
+      <button onClick={() => AjaxRespite.prototype.repeatLastRequest()}>
+        Refresh
+      </button>
+      <br />
       <input
         type="text"
         value={filter}
@@ -19,17 +27,17 @@ export const Countries: FunctionComponent<RouteComponentProps> = () => {
       />
       <br />
       <AjaxRespite
-        source={getAllCountries$({ filter })}
+        source={optimisticRequest(filterValue)}
+        // source={getAllCountries$({filter: filterValue})}
         fallback={
-          filterValue !== "" ? (
+          filter !== "" ? (
             <strong>Searching...</strong>
           ) : (
             <strong>Loading...</strong>
           )
         }
-        maxDuration={0}
         params={[filterValue]}
-        optimisticMode={true}
+        maxDuration={0}
         onSuccess={data => {
           if (filter !== "" && data.length === 0) {
             return <strong>No results for {filter}</strong>;
