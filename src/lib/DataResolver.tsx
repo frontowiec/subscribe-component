@@ -14,7 +14,7 @@ type SimpleSuspenseProps<T> = {
 
 let repeatLastRequest: () => void;
 
-function AjaxRespite<T>({
+function DataResolver<T>({
   fallback,
   maxDuration = 0,
   source,
@@ -56,5 +56,5 @@ function AjaxRespite<T>({
   return null;
 }
 
-export { AjaxRespite, repeatLastRequest };
-export default AjaxRespite;
+export { DataResolver, repeatLastRequest };
+export default DataResolver;

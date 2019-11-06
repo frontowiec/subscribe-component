@@ -2,9 +2,9 @@ import * as React from "react";
 import { FunctionComponent, Fragment, useState } from "react";
 import { getAllCountries, getAllCountries$ } from "../api/restcountries";
 import { RouteComponentProps } from "@reach/router";
-import AjaxRespite, { repeatLastRequest } from "../AjaxRespite";
+import DataResolver, { repeatLastRequest } from "../lib/DataResolver";
 import { useDebounce } from "use-debounce";
-import { createOptimisticResource } from "../createOptimisticResource";
+import { createOptimisticResource } from "../lib/createOptimisticResource";
 
 const optimisticRequest$ = (filter: string) =>
   createOptimisticResource(getAllCountries$({ filter }));
@@ -29,7 +29,7 @@ export const Countries: FunctionComponent<RouteComponentProps> = () => {
         placeholder="Type country name..."
       />
       <br />
-      <AjaxRespite
+      <DataResolver
         source={optimisticRequest$(filterValue)}
         // source={optimisticRequest(filterValue)}
         // source={getAllCountries$({filter: filterValue})}
